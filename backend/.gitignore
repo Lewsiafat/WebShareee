@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg-info/
+.eggs/
+
+# Distribution / packaging
+.Python
+build/
+dist/
+wheels/
+*.egg
+
+# Environments
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Source code distributions
+sdist/
+bdist/
+
+# Editors
+.vscode/
+.idea/
+*~
+*.swp
+
+# OS
+.DS_Store
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables
+.env
+.flaskenv
+
+# Uploads directory
+uploads/
