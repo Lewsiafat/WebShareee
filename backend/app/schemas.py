@@ -16,3 +16,6 @@ class PageResponse(BaseModel):
 
     class Config:
         from_attributes = True # For SQLAlchemy ORM compatibility
+
+class PageUpdate(BaseModel):
+    title: Optional[str] = None

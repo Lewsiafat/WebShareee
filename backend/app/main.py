@@ -57,8 +57,8 @@ security = HTTPBasic()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Hardcoded admin user for now (replace with proper user management in production)
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH", pwd_context.hash("adminpassword")) # Default password "adminpassword"
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "lewsiafat@gmail.com")
+ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH", "$2b$12$cTnLLSUIkS5eZyOyN2s5neWsCJGHVRg9RZvfQId78SDdWOUnq3C.i") # Default password "demi322060"
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -274,6 +274,34 @@ async def delete_page(
     page.is_active = False
     db.commit()
     return {"message": f"Page '{page_id}' soft-deleted successfully."}
+
+# Update Page Details
+@app.put("/api/pages/{page_id}", response_model=schemas.PageResponse, summary="Update Page Details")
+async def update_page(
+    page_id: str,
+    page_update: schemas.PageUpdate,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_username) # Requires authentication
+):
+    page = db.query(Page).filter(Page.id == page_id, Page.is_active == True).first()
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    if page_update.title is not None:
+        page.title = page_update.title
+
+    db.commit()
+    db.refresh(page)
+    
+    # Manually construct URL for the response
+    return schemas.PageResponse(
+        id=page.id,
+        title=page.title,
+        url=f"/p/{page.id}",
+        created_at=page.created_at,
+        view_count=page.view_count,
+        is_active=page.is_active
+    )
 
 # Serve Page and Increment View Count
 @app.get("/p/{page_id}", summary="Serve Page and Increment View Count", response_class=HTMLResponse)

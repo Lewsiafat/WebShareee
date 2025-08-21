@@ -23,6 +23,7 @@
       <el-table-column label="Actions">
         <template #default="scope">
           <el-button size="small" @click="viewPage(scope.row.url)">View</el-button>
+          <el-button size="small" @click="handleEdit(scope.row)">Edit</el-button> <!-- New Edit Button -->
           <el-button size="small" type="danger" @click="confirmDelete(scope.row.id)">Delete</el-button>
         </template>
       </el-table-column>
@@ -30,8 +31,9 @@
 
     <el-alert v-if="errorMessage" :title="errorMessage" type="error" show-icon class="mt-4"></el-alert>
 
+    <!-- Delete Confirmation Dialog -->
     <el-dialog
-      v-model="dialogVisible"
+      v-model="deleteDialogVisible"
       title="Confirm Deletion"
       width="30%"
       center
@@ -39,8 +41,31 @@
       <span>Are you sure you want to delete this page? This action cannot be undone.</span>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">Cancel</el-button>
+          <el-button @click="deleteDialogVisible = false">Cancel</el-button>
           <el-button type="danger" @click="deletePage">Confirm</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- Edit Dialog -->
+    <el-dialog
+      v-model="editDialogVisible"
+      title="Edit Page"
+      width="40%"
+      center
+    >
+      <el-form :model="currentPageToEdit" label-width="100px">
+        <el-form-item label="Page ID">
+          <el-input v-model="currentPageToEdit.id" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="Title">
+          <el-input v-model="currentPageToEdit.title"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editDialogVisible = false">Cancel</el-button>
+          <el-button type="primary" @click="saveEdit" :loading="loading">Save</el-button>
         </span>
       </template>
     </el-dialog>
@@ -51,31 +76,28 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Refresh } from '@element-plus/icons-vue'; // Import the icon
-import { useAuthStore } from '../stores/auth'; // Import auth store
+import { Refresh } from '@element-plus/icons-vue';
+import { useAuthStore } from '../stores/auth';
 
 const pages = ref([]);
 const loading = ref(false);
 const errorMessage = ref('');
-const dialogVisible = ref(false);
+
+// Delete related
+const deleteDialogVisible = ref(false); // Renamed from dialogVisible
 const pageToDeleteId = ref(null);
 
-const authStore = useAuthStore(); // Get auth store instance
+// Edit related
+const editDialogVisible = ref(false);
+const currentPageToEdit = ref({ id: '', title: '' }); // Initialize with empty object
+
+const authStore = useAuthStore();
 
 const fetchPages = async () => {
   loading.value = true;
   errorMessage.value = '';
   try {
-    const headers = {};
-    if (authStore.isAuthenticated && authStore.username) {
-      // Assuming password is not stored on frontend,
-      // for a real app, you'd use a token or session.
-      // For Basic Auth, you'd need to re-authenticate or use a token.
-      // For simplicity, we'll assume a token-based auth or session is established after login.
-      // If the backend requires Basic Auth for every request, you'd need to pass it here.
-      // Example: headers['Authorization'] = `Basic ${btoa(`${authStore.username}:${authStore.password}`)}`;
-    }
-    const response = await axios.get('/api/pages', { headers });
+    const response = await axios.get('/api/pages', { headers: authStore.getAuthHeader() }); // Use auth header
     pages.value = response.data;
   } catch (error) {
     errorMessage.value = error.response?.data?.detail || 'Failed to fetch pages.';
@@ -87,23 +109,19 @@ const fetchPages = async () => {
 
 const confirmDelete = (pageId) => {
   pageToDeleteId.value = pageId;
-  dialogVisible.value = true;
+  deleteDialogVisible.value = true; // Use new dialog variable
 };
 
 const deletePage = async () => {
-  dialogVisible.value = false;
+  deleteDialogVisible.value = false;
   if (!pageToDeleteId.value) return;
 
   loading.value = true;
   errorMessage.value = '';
   try {
-    const headers = {};
-    if (authStore.isAuthenticated && authStore.username) {
-      // Same auth considerations as fetchPages
-    }
-    await axios.delete(`/api/pages/${pageToDeleteId.value}`, { headers });
+    await axios.delete(`/api/pages/${pageToDeleteId.value}`, { headers: authStore.getAuthHeader() }); // Use auth header
     ElMessage.success('Page deleted successfully!');
-    fetchPages(); // Refresh the list
+    fetchPages();
   } catch (error) {
     errorMessage.value = error.response?.data?.detail || 'Failed to delete page.';
     ElMessage.error('Deletion failed!');
@@ -113,13 +131,37 @@ const deletePage = async () => {
   }
 };
 
+// New Edit methods
+const handleEdit = (page) => {
+  currentPageToEdit.value = { ...page }; // Create a copy to avoid direct mutation
+  editDialogVisible.value = true;
+};
+
+const saveEdit = async () => {
+  loading.value = true;
+  errorMessage.value = '';
+  try {
+    await axios.put(`/api/pages/${currentPageToEdit.value.id}`, {
+      title: currentPageToEdit.value.title
+    }, { headers: authStore.getAuthHeader() }); // Use auth header
+    ElMessage.success('Page updated successfully!');
+    editDialogVisible.value = false;
+    fetchPages(); // Refresh the list
+  } catch (error) {
+    errorMessage.value = error.response?.data?.detail || 'Failed to update page.';
+    ElMessage.error('Update failed!');
+  } finally {
+    loading.value = false;
+  }
+};
+
 const viewPage = (url) => {
   window.open(url, '_blank');
 };
 
 const formatDate = (timestamp) => {
   const date = new Date(timestamp);
-  return date.toLocaleString(); // Adjust format as needed
+  return date.toLocaleString();
 };
 
 onMounted(() => {
@@ -128,19 +170,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.history-container {
-  max-width: 1000px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
+/* No scoped styles needed here, using global .page-container */
 .header-actions {
   text-align: right;
   margin-bottom: 20px;
 }
 .mt-4 {
   margin-top: 20px;
+}
+.dialog-footer button:first-child {
+  margin-right: 10px;
 }
 </style>
