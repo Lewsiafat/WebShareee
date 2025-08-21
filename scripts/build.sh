@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define paths relative to the script's location
-SCRIPT_DIR=$(dirname "$0")
-PROJECT_ROOT=$(cd "$SCRIPT_DIR/..". && pwd)
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")") # Use readlink -f for absolute path
+PROJECT_ROOT=$(dirname "$SCRIPT_DIR") # Go up one level from SCRIPT_DIR
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
 
 echo "Building frontend application..."
