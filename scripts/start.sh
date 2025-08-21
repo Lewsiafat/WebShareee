@@ -13,38 +13,32 @@ echo "Starting frontend and backend services..."
 > "$PIDS_FILE" # Create/truncate the file before writing
 
 # --- Start Frontend ---
-echo "Starting frontend (Vite dev server) on port 8080..."
-(
+# Launch frontend in a subshell, print its PID to stdout
+FRONTEND_PID_OUTPUT=$( # Capture stdout of this subshell
     cd "$FRONTEND_DIR" || { echo "Error: Frontend directory not found."; exit 1; }
     npm run dev > /dev/null 2>&1 &
-    echo $! > "$PIDS_FILE.tmp_frontend" # Write PID to a temporary file
-) &
-FRONTEND_LAUNCHER_PID=$! # PID of the subshell that launches frontend
+    echo $! # Print PID to stdout of this subshell
+)
 
 # --- Start Backend ---
-echo "Starting backend (FastAPI/Uvicorn) on port 8700..."
-(
+# Launch backend in a subshell, print its PID to stdout
+BACKEND_PID_OUTPUT=$( # Capture stdout of this subshell
     cd "$BACKEND_DIR" || { echo "Error: Backend directory not found."; exit 1; }
     "$BACKEND_DIR/.venv/bin/uvicorn" app.main:app --reload --port 8700 > /dev/null 2>&1 &
-    echo $! > "$PIDS_FILE.tmp_backend" # Write PID to a temporary file
-) &
-BACKEND_LAUNCHER_PID=$! # PID of the subshell that launches backend
+    echo $! # Print PID to stdout of this subshell
+)
 
-# Wait for the launcher subshells to finish and write their PIDs
-wait $FRONTEND_LAUNCHER_PID
-wait $BACKEND_LAUNCHER_PID
+# Capture the PIDs from the subshells' stdout
+FRONTEND_PID=$(echo "$FRONTEND_PID_OUTPUT")
+BACKEND_PID=$(echo "$BACKEND_PID_OUTPUT")
 
-# Read PIDs from temporary files and consolidate into PIDS_FILE
-FRONTEND_PID=$(cat "$PIDS_FILE.tmp_frontend")
-BACKEND_PID=$(cat "$PIDS_FILE.tmp_backend")
-
-echo "$FRONTEND_PID" >> "$PIDS_FILE"
-echo "$BACKEND_PID" >> "$PIDS_FILE"
-
-rm "$PIDS_FILE.tmp_frontend" "$PIDS_FILE.tmp_backend" # Clean up temporary files
-
-echo "Frontend started with PID: $FRONTEND_PID"
-echo "Backend started with PID: $BACKEND_PID"
+# Write PIDs to the main PIDS_FILE
+if [ -n "$FRONTEND_PID" ]; then
+    echo "$FRONTEND_PID" >> "$PIDS_FILE"
+fi
+if [ -n "$BACKEND_PID" ]; then
+    echo "$BACKEND_PID" >> "$PIDS_FILE"
+fi
 
 echo "Services started. PIDs saved to $PIDS_FILE"
 echo "Frontend: http://localhost:8080"
