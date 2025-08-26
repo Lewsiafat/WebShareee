@@ -23,3 +23,7 @@ class PageUpdate(BaseModel):
 class PasswordChange(BaseModel):
     old_password: str
     new_password: str
+
+class UsernameChange(BaseModel):
+    new_username: str
+    password: str

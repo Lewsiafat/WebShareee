@@ -55,6 +55,60 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('username');
       localStorage.removeItem('basicAuthToken');
     },
+
+    async changePassword(oldPassword, newPassword) {
+      if (!this.isAuthenticated) {
+        this.error = "User is not authenticated.";
+        return false;
+      }
+      try {
+        this.error = null;
+        const response = await axios.put(
+          '/api/admin/password',
+          { old_password: oldPassword, new_password: newPassword },
+          { headers: this.getAuthHeader() }
+        );
+
+        if (response.status === 200) {
+          // Update the stored token with the new password
+          const newCredentials = btoa(`${this.username}:${newPassword}`);
+          this.basicAuthToken = newCredentials;
+          localStorage.setItem('basicAuthToken', newCredentials);
+          return true;
+        }
+      } catch (err) {
+        this.error = err.response?.data?.detail || 'Failed to change password.';
+        return false;
+      }
+    },
+
+    async changeUsername(newUsername, password) {
+      if (!this.isAuthenticated) {
+        this.error = "User is not authenticated.";
+        return false;
+      }
+      try {
+        this.error = null;
+        const response = await axios.put(
+          '/api/admin/username',
+          { new_username: newUsername, password: password },
+          { headers: this.getAuthHeader() }
+        );
+
+        if (response.status === 200) {
+          // Update username and token
+          const newCredentials = btoa(`${newUsername}:${password}`);
+          this.username = newUsername;
+          this.basicAuthToken = newCredentials;
+          localStorage.setItem('username', newUsername);
+          localStorage.setItem('basicAuthToken', newCredentials);
+          return true;
+        }
+      } catch (err) {
+        this.error = err.response?.data?.detail || 'Failed to change username.';
+        return false;
+      }
+    },
     getAuthHeader() {
       if (this.isAuthenticated && this.basicAuthToken) {
         return { 'Authorization': `Basic ${this.basicAuthToken}` };

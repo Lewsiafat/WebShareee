@@ -334,6 +334,30 @@ async def change_admin_password(
     db.commit()
     return {"message": "Password changed successfully."}
 
+
+# Change Admin Username
+@app.put("/api/admin/username", summary="Change Admin Username")
+async def change_admin_username(
+    username_change: schemas.UsernameChange,
+    db: Session = Depends(get_db),
+    current_user_username: str = Depends(get_current_username) # Authenticate current admin
+):
+    user = db.query(User).filter(User.username == current_user_username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    # Verify password
+    if not verify_password(username_change.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect password.")
+
+    # Check if new username is already taken
+    if db.query(User).filter(User.username == username_change.new_username).first():
+        raise HTTPException(status_code=400, detail="Username is already taken.")
+
+    user.username = username_change.new_username
+    db.commit()
+    return {"message": "Username changed successfully."}
+
 # Serve Page and Increment View Count
 @app.get("/p/{page_id}", summary="Serve Page and Increment View Count", response_class=HTMLResponse)
 async def serve_page(page_id: str, db: Session = Depends(get_db)):
