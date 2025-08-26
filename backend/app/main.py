@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
 from . import database, schemas # Assuming schemas.py will be created later
-from .database import engine, SessionLocal, create_db_and_tables, Page, Asset # Import models directly
+from .database import engine, SessionLocal, create_db_and_tables, Page, Asset, User # Import User model
 
 # --- FastAPI App Initialization ---
 app = FastAPI(
@@ -43,6 +43,24 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
+    # Create a default admin user if none exists
+    db = SessionLocal()
+    try:
+        from passlib.context import CryptContext # Import here to avoid circular dependency
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+        if db.query(User).count() == 0:
+            default_username = os.getenv("DEFAULT_ADMIN_USERNAME", "admin")
+            default_password = os.getenv("DEFAULT_ADMIN_PASSWORD", "adminpassword")
+            hashed_password = pwd_context.hash(default_password)
+            default_user = User(username=default_username, hashed_password=hashed_password)
+            db.add(default_user)
+            db.commit()
+            print(f"Default admin user '{default_username}' created.")
+        else:
+            print("Admin user already exists. Skipping default creation.")
+    finally:
+        db.close()
 
 # Dependency to get DB session
 def get_db():
@@ -56,23 +74,18 @@ def get_db():
 security = HTTPBasic()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Hardcoded admin user for now (replace with proper user management in production)
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "lewsiafat@gmail.com")
-ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH", "$2b$12$cTnLLSUIkS5eZyOyN2s5neWsCJGHVRg9RZvfQId78SDdWOUnq3C.i") # Default password "demi322060"
-
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
-def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = secrets.compare_digest(credentials.username, ADMIN_USERNAME)
-    correct_password_hash = verify_password(credentials.password, ADMIN_PASSWORD_HASH)
-    if not (correct_username and correct_password_hash):
+def get_current_username(credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == credentials.username).first()
+    if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Basic"},
         )
-    return credentials.username
+    return user.username
 
 # --- File Storage Configuration ---
 # Get the absolute path of the current file (main.py)
@@ -302,6 +315,24 @@ async def update_page(
         view_count=page.view_count,
         is_active=page.is_active
     )
+
+# Change Admin Password
+@app.put("/api/admin/password", summary="Change Admin Password")
+async def change_admin_password(
+    password_change: schemas.PasswordChange,
+    db: Session = Depends(get_db),
+    current_user_username: str = Depends(get_current_username) # Authenticate current admin
+):
+    user = db.query(User).filter(User.username == current_user_username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.") # Should not happen if authenticated
+
+    if not verify_password(password_change.old_password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect old password.")
+
+    user.hashed_password = pwd_context.hash(password_change.new_password)
+    db.commit()
+    return {"message": "Password changed successfully."}
 
 # Serve Page and Increment View Count
 @app.get("/p/{page_id}", summary="Serve Page and Increment View Count", response_class=HTMLResponse)

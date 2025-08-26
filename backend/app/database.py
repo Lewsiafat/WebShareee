@@ -40,6 +40,14 @@ class Asset(Base):
     file_path = Column(String(500))
     uploaded_at = Column(DateTime, default=datetime.now)
 
+# Define the User model
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, index=True)
+    hashed_password = Column(String(255))
+
 # Function to create all tables
 def create_db_and_tables():
     Base.metadata.create_all(engine)

@@ -19,3 +19,7 @@ class PageResponse(BaseModel):
 
 class PageUpdate(BaseModel):
     title: Optional[str] = None
+
+class PasswordChange(BaseModel):
+    old_password: str
+    new_password: str
