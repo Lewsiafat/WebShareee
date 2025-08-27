@@ -6,6 +6,10 @@ class HtmlCodeUpload(BaseModel):
     html_content: str
     title: Optional[str] = None
 
+class MarkdownCodeUpload(BaseModel):
+    markdown_content: str
+    title: Optional[str] = None
+
 class PageResponse(BaseModel):
     id: str
     title: Optional[str] = None

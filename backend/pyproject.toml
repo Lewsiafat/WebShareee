@@ -9,6 +9,7 @@ dependencies = [
     "aiofiles",
     "python-multipart",
     "passlib[bcrypt]", # For password hashing
+    "markdown",
 ]
 requires-python = ">=3.11"
 

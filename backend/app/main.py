@@ -2,6 +2,7 @@ import os
 import shutil
 import secrets
 import string
+import markdown
 from typing import Optional, List
 from pathlib import Path
 
@@ -15,8 +16,8 @@ from sqlalchemy.orm import Session
 
 from passlib.context import CryptContext
 
-from . import database, schemas # Assuming schemas.py will be created later
-from .database import engine, SessionLocal, create_db_and_tables, Page, Asset, User # Import User model
+from . import database, schemas
+from .database import engine, SessionLocal, create_db_and_tables, Page, Asset, User
 
 # --- FastAPI App Initialization ---
 app = FastAPI(
@@ -27,7 +28,7 @@ app = FastAPI(
 
 # --- CORS Middleware ---
 origins = [
-    "http://localhost:5173",  # Frontend development server
+    "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
 app.add_middleware(
@@ -39,14 +40,12 @@ app.add_middleware(
 )
 
 # --- Database Setup ---
-# Create database tables on startup
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
-    # Create a default admin user if none exists
     db = SessionLocal()
     try:
-        from passlib.context import CryptContext # Import here to avoid circular dependency
+        from passlib.context import CryptContext
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
         if db.query(User).count() == 0:
@@ -62,7 +61,6 @@ def on_startup():
     finally:
         db.close()
 
-# Dependency to get DB session
 def get_db():
     db = SessionLocal()
     try:
@@ -88,28 +86,15 @@ def get_current_username(credentials: HTTPBasicCredentials = Depends(security), 
     return user.username
 
 # --- File Storage Configuration ---
-# Get the absolute path of the current file (main.py)
 CURRENT_FILE_DIR = Path(__file__).parent.resolve()
-# Go up three levels to the 'web-hosting-service' root
 PROJECT_ROOT = CURRENT_FILE_DIR.parent.parent.parent.resolve()
-
-# Define UPLOAD_DIR relative to the project root
 UPLOAD_DIR = PROJECT_ROOT / "backend" / "uploads"
 PAGES_DIR = UPLOAD_DIR / "pages"
-PAGES_DIR.mkdir(parents=True, exist_ok=True) # Ensure upload directories exist
-
-# Mount static files for serving uploaded pages and assets
-# This will serve files from /p/{page_id}/index.html and /p/{page_id}/assets/{file_name}
-# We'll handle the /p/{page_id} route dynamically to increment view count
-# and then serve the static file.
-# For direct asset access, we'll mount a generic static files handler.
-# app.mount("/p", StaticFiles(directory=PAGES_DIR), name="pages_static") # This will be handled by dynamic routes
-
+PAGES_DIR.mkdir(parents=True, exist_ok=True)
 
 # --- Helper Functions ---
 def generate_short_id(length=6):
     chars = string.ascii_letters + string.digits
-    # Exclude confusing characters (0, O, l, 1)
     confusing_chars = "0Ol1"
     valid_chars = "".join(c for c in chars if c not in confusing_chars)
     return ''.join(secrets.choice(valid_chars) for _ in range(length))
@@ -127,36 +112,43 @@ def get_unique_page_id(db: Session):
 async def login(username: str = Depends(get_current_username)):
     return {"message": f"Welcome, {username}! Login successful."}
 
-# Upload HTML File
-@app.post("/api/upload/html", summary="Upload HTML File")
+# Upload HTML or Markdown File
+@app.post("/api/upload/html", summary="Upload HTML or Markdown File")
 async def upload_html_file(
     file: UploadFile = File(...),
     title: Optional[str] = Form(None),
     db: Session = Depends(get_db),
-    current_user: str = Depends(get_current_username) # Requires authentication
+    current_user: str = Depends(get_current_username)
 ):
-    if not file.filename.endswith(".html"):
-        raise HTTPException(status_code=400, detail="Only HTML files are allowed.")
+    filename = file.filename
+    if not (filename.endswith(".html") or filename.endswith(".md") or filename.endswith(".markdown")):
+        raise HTTPException(status_code=400, detail="Only .html, .md, or .markdown files are allowed.")
 
     page_id = get_unique_page_id(db)
     page_dir = PAGES_DIR / page_id
     page_dir.mkdir(parents=True, exist_ok=True)
     html_file_path = page_dir / "index.html"
 
-    print(f"[DEBUG] Attempting to write HTML file to: {html_file_path.absolute()}") # Added .absolute()
-
     try:
-        with open(html_file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        print(f"[DEBUG] File write operation completed for: {html_file_path.absolute()}") # Added .absolute()
+        content_bytes = await file.read()
+        
+        if filename.endswith(".md") or filename.endswith(".markdown"):
+            md_content = content_bytes.decode("utf-8")
+            html_content = markdown.markdown(md_content)
+            with open(html_file_path, "w", encoding="utf-8") as f:
+                f.write(html_content)
+        else: # HTML file
+            with open(html_file_path, "wb") as f:
+                f.write(content_bytes)
+
     finally:
-        file.file.close()
+        await file.close()
 
     db_page = Page(
         id=page_id,
-        title=title if title else file.filename,
+        title=title if title else filename,
         file_path=str(html_file_path),
-        html_content=None # Content is in file, not directly stored
+        html_content=None
     )
     db.add(db_page)
     db.commit()
@@ -169,28 +161,56 @@ async def upload_html_file(
 async def upload_html_code(
     payload: schemas.HtmlCodeUpload,
     db: Session = Depends(get_db),
-    current_user: str = Depends(get_current_username) # Requires authentication
+    current_user: str = Depends(get_current_username)
 ):
     page_id = get_unique_page_id(db)
     page_dir = PAGES_DIR / page_id
     page_dir.mkdir(parents=True, exist_ok=True)
     html_file_path = page_dir / "index.html"
 
-    print(f"[DEBUG] Attempting to write HTML code to: {html_file_path.absolute()}") # Added .absolute()
-
     try:
         with open(html_file_path, "w", encoding="utf-8") as f:
             f.write(payload.html_content)
-        print(f"[DEBUG] File write operation completed for: {html_file_path.absolute()}") # Added .absolute()
     except Exception as e:
-        print(f"[ERROR] Failed to write HTML content: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to write HTML content: {e}")
 
     db_page = Page(
         id=page_id,
         title=payload.title if payload.title else "Untitled Page",
         file_path=str(html_file_path),
-        html_content=payload.html_content # Store content directly
+        html_content=payload.html_content
+    )
+    db.add(db_page)
+    db.commit()
+    db.refresh(db_page)
+
+    return {"id": db_page.id, "title": db_page.title, "url": f"/p/{db_page.id}", "created_at": db_page.created_at}
+
+# Upload Markdown Code
+@app.post("/api/upload/markdown", summary="Upload Markdown Code")
+async def upload_markdown_code(
+    payload: schemas.MarkdownCodeUpload,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_username)
+):
+    page_id = get_unique_page_id(db)
+    page_dir = PAGES_DIR / page_id
+    page_dir.mkdir(parents=True, exist_ok=True)
+    html_file_path = page_dir / "index.html"
+
+    html_content = markdown.markdown(payload.markdown_content)
+
+    try:
+        with open(html_file_path, "w", encoding="utf-8") as f:
+            f.write(html_content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to write HTML content: {e}")
+
+    db_page = Page(
+        id=page_id,
+        title=payload.title if payload.title else "Untitled Page",
+        file_path=str(html_file_path),
+        html_content=payload.markdown_content
     )
     db.add(db_page)
     db.commit()
@@ -204,7 +224,7 @@ async def upload_asset(
     page_id: str,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: str = Depends(get_current_username) # Requires authentication
+    current_user: str = Depends(get_current_username)
 ):
     page = db.query(Page).filter(Page.id == page_id, Page.is_active == True).first()
     if not page:
@@ -236,10 +256,9 @@ async def upload_asset(
 @app.get("/api/pages", response_model=List[schemas.PageResponse], summary="Get All Pages")
 async def get_all_pages(
     db: Session = Depends(get_db),
-    current_user: str = Depends(get_current_username) # Requires authentication
+    current_user: str = Depends(get_current_username)
 ):
     pages = db.query(Page).filter(Page.is_active == True).all()
-    # Manually construct URL for each page in the response
     response_pages = []
     for page in pages:
         response_pages.append(schemas.PageResponse(
@@ -257,13 +276,12 @@ async def get_all_pages(
 async def get_page_details(
     page_id: str,
     db: Session = Depends(get_db),
-    current_user: str = Depends(get_current_username) # Requires authentication
+    current_user: str = Depends(get_current_username)
 ):
     page = db.query(Page).filter(Page.id == page_id, Page.is_active == True).first()
     if not page:
         raise HTTPException(status_code=404, detail="Page not found.")
     
-    # Manually construct URL for the response
     return schemas.PageResponse(
         id=page.id,
         title=page.title,
@@ -278,7 +296,7 @@ async def get_page_details(
 async def delete_page(
     page_id: str,
     db: Session = Depends(get_db),
-    current_user: str = Depends(get_current_username) # Requires authentication
+    current_user: str = Depends(get_current_username)
 ):
     page = db.query(Page).filter(Page.id == page_id, Page.is_active == True).first()
     if not page:
@@ -294,7 +312,7 @@ async def update_page(
     page_id: str,
     page_update: schemas.PageUpdate,
     db: Session = Depends(get_db),
-    current_user: str = Depends(get_current_username) # Requires authentication
+    current_user: str = Depends(get_current_username)
 ):
     page = db.query(Page).filter(Page.id == page_id, Page.is_active == True).first()
     if not page:
@@ -306,7 +324,6 @@ async def update_page(
     db.commit()
     db.refresh(page)
     
-    # Manually construct URL for the response
     return schemas.PageResponse(
         id=page.id,
         title=page.title,
@@ -321,11 +338,11 @@ async def update_page(
 async def change_admin_password(
     password_change: schemas.PasswordChange,
     db: Session = Depends(get_db),
-    current_user_username: str = Depends(get_current_username) # Authenticate current admin
+    current_user_username: str = Depends(get_current_username)
 ):
     user = db.query(User).filter(User.username == current_user_username).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found.") # Should not happen if authenticated
+        raise HTTPException(status_code=404, detail="User not found.")
 
     if not verify_password(password_change.old_password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect old password.")
@@ -340,17 +357,15 @@ async def change_admin_password(
 async def change_admin_username(
     username_change: schemas.UsernameChange,
     db: Session = Depends(get_db),
-    current_user_username: str = Depends(get_current_username) # Authenticate current admin
+    current_user_username: str = Depends(get_current_username)
 ):
     user = db.query(User).filter(User.username == current_user_username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
 
-    # Verify password
     if not verify_password(username_change.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect password.")
 
-    # Check if new username is already taken
     if db.query(User).filter(User.username == username_change.new_username).first():
         raise HTTPException(status_code=400, detail="Username is already taken.")
 
@@ -365,7 +380,6 @@ async def serve_page(page_id: str, db: Session = Depends(get_db)):
     if not page:
         raise HTTPException(status_code=404, detail="Page not found or is inactive.")
 
-    # Increment view count
     page.view_count += 1
     db.commit()
 
