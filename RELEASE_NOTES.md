@@ -1,3 +1,18 @@
+### `feat(upload): Markdown Support`
+
+**Date:** `2025-08-26`
+
+**Summary:**
+The application now fully supports Markdown. Users can upload Markdown files or paste Markdown code directly, which will be automatically converted and rendered as HTML.
+
+**Key Changes:**
+*   **Markdown Upload**: The upload page now features a dedicated "Markdown" tab.
+*   **File & Code Support**: Supports both `.md`/`.markdown` file uploads and direct code pasting.
+*   **Automatic Conversion**: The backend automatically converts all Markdown submissions to HTML before saving, ensuring they render correctly when viewed.
+*   **Dependency Management**: The new `markdown` package is now managed via `pyproject.toml` and locked with `uv.lock`.
+
+---
+
 ### `feat(account): Account Settings Page`
 
 **Date:** `2025-08-26`
