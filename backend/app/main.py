@@ -228,7 +228,183 @@ async def upload_markdown_code(
     logger.info(f"Successfully created page '{page_id}' from Markdown code.")
     return {"id": db_page.id, "title": db_page.title, "url": f"/p/{db_page.id}", "created_at": db_page.created_at}
 
-# ... (rest of the endpoints with logging added) ...
+# Upload Asset
+@app.post("/api/upload/asset/{page_id}", summary="Upload Asset for a Page")
+async def upload_asset(
+    page_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_username)
+):
+    logger.info(f"User '{current_user}' uploading asset '{file.filename}' for page '{page_id}'")
+    page = db.query(Page).filter(Page.id == page_id, Page.is_active == True).first()
+    if not page:
+        logger.warning(f"Page not found: {page_id}")
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    asset_dir = PAGES_DIR / page_id / "assets"
+    asset_dir.mkdir(parents=True, exist_ok=True)
+    asset_file_path = asset_dir / file.filename
+
+    try:
+        with open(asset_file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        logger.error(f"Failed to save asset '{file.filename}' for page '{page_id}': {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to save asset.")
+    finally:
+        file.file.close()
+
+    db_asset = Asset(
+        page_id=page_id,
+        file_name=file.filename,
+        file_type=file.content_type,
+        file_path=str(asset_file_path)
+    )
+    db.add(db_asset)
+    db.commit()
+    db.refresh(db_asset)
+    logger.info(f"Asset '{file.filename}' uploaded successfully for page '{page_id}'.")
+    return {"message": f"Asset '{file.filename}' uploaded successfully for page '{page_id}'."}
+
+# Get All Pages
+@app.get("/api/pages", response_model=List[schemas.PageResponse], summary="Get All Pages")
+async def get_all_pages(
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_username)
+):
+    logger.info(f"User '{current_user}' fetching all pages.")
+    pages = db.query(Page).filter(Page.is_active == True).all()
+    response_pages = []
+    for page in pages:
+        response_pages.append(schemas.PageResponse(
+            id=page.id,
+            title=page.title,
+            url=f"/p/{page.id}",
+            created_at=page.created_at,
+            view_count=page.view_count,
+            is_active=page.is_active
+        ))
+    return response_pages
+
+# Get Page Details
+@app.get("/api/pages/{page_id}", response_model=schemas.PageResponse, summary="Get Page Details")
+async def get_page_details(
+    page_id: str,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_username)
+):
+    logger.info(f"User '{current_user}' fetching details for page '{page_id}'.")
+    page = db.query(Page).filter(Page.id == page_id, Page.is_active == True).first()
+    if not page:
+        logger.warning(f"Page not found: {page_id}")
+        raise HTTPException(status_code=404, detail="Page not found.")
+    
+    return schemas.PageResponse(
+        id=page.id,
+        title=page.title,
+        url=f"/p/{page.id}",
+        created_at=page.created_at,
+        view_count=page.view_count,
+        is_active=page.is_active
+    )
+
+# Delete Page (Soft Delete)
+@app.delete("/api/pages/{page_id}", summary="Delete Page (Soft Delete)")
+async def delete_page(
+    page_id: str,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_username)
+):
+    logger.info(f"User '{current_user}' deleting page '{page_id}'.")
+    page = db.query(Page).filter(Page.id == page_id, Page.is_active == True).first()
+    if not page:
+        logger.warning(f"Page not found for deletion: {page_id}")
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    page.is_active = False
+    db.commit()
+    logger.info(f"Page '{page_id}' soft-deleted successfully.")
+    return {"message": f"Page '{page_id}' soft-deleted successfully."}
+
+# Update Page Details
+@app.put("/api/pages/{page_id}", response_model=schemas.PageResponse, summary="Update Page Details")
+async def update_page(
+    page_id: str,
+    page_update: schemas.PageUpdate,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_username)
+):
+    logger.info(f"User '{current_user}' updating page '{page_id}'.")
+    page = db.query(Page).filter(Page.id == page_id, Page.is_active == True).first()
+    if not page:
+        logger.warning(f"Page not found for update: {page_id}")
+        raise HTTPException(status_code=404, detail="Page not found.")
+
+    if page_update.title is not None:
+        page.title = page_update.title
+
+    db.commit()
+    db.refresh(page)
+    logger.info(f"Page '{page_id}' updated successfully.")
+    return schemas.PageResponse(
+        id=page.id,
+        title=page.title,
+        url=f"/p/{page.id}",
+        created_at=page.created_at,
+        view_count=page.view_count,
+        is_active=page.is_active
+    )
+
+# Change Admin Password
+@app.put("/api/admin/password", summary="Change Admin Password")
+async def change_admin_password(
+    password_change: schemas.PasswordChange,
+    db: Session = Depends(get_db),
+    current_user_username: str = Depends(get_current_username)
+):
+    logger.info(f"User '{current_user_username}' attempting to change password.")
+    user = db.query(User).filter(User.username == current_user_username).first()
+    if not user:
+        logger.error(f"User not found: {current_user_username}")
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    if not verify_password(password_change.old_password, user.hashed_password):
+        logger.warning(f"Incorrect password for user '{current_user_username}' during password change")
+        raise HTTPException(status_code=400, detail="Incorrect old password.")
+
+    user.hashed_password = pwd_context.hash(password_change.new_password)
+    db.commit()
+    logger.info(f"Password for user '{current_user_username}' changed successfully.")
+    return {"message": "Password changed successfully."}
+
+
+# Change Admin Username
+@app.put("/api/admin/username", summary="Change Admin Username")
+async def change_admin_username(
+    username_change: schemas.UsernameChange,
+    db: Session = Depends(get_db),
+    current_user_username: str = Depends(get_current_username)
+):
+    logger.info(f"User '{current_user_username}' attempting to change username to '{username_change.new_username}'")
+    user = db.query(User).filter(User.username == current_user_username).first()
+    if not user:
+        logger.error(f"User not found: {current_user_username}")
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    if not verify_password(username_change.password, user.hashed_password):
+        logger.warning(f"Incorrect password for user '{current_user_username}' during username change")
+        raise HTTPException(status_code=400, detail="Incorrect password.")
+
+    if db.query(User).filter(User.username == username_change.new_username).first():
+        logger.warning(f"Username '{username_change.new_username}' is already taken.")
+        raise HTTPException(status_code=400, detail="Username is already taken.")
+
+    user.username = username_change.new_username
+    db.commit()
+    logger.info(f"Username for user '{current_user_username}' successfully changed to '{username_change.new_username}'")
+    return {"message": "Username changed successfully."}
+
 
 # Serve Page and Increment View Count
 @app.get("/p/{page_id}", summary="Serve Page and Increment View Count", response_class=HTMLResponse)
