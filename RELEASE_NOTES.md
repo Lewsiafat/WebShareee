@@ -1,3 +1,19 @@
+### `feat(backend): Comprehensive Logging and Stability`
+
+**Date:** `2025-08-27`
+
+**Summary:**
+This update introduces a robust logging framework to the backend application, providing better visibility into application behavior and errors. It also includes several stability improvements and configuration updates to enhance the development experience.
+
+**Key Changes:**
+*   **Comprehensive Logging**: Integrated Python's `logging` module throughout the FastAPI application. All major events, API calls, and errors are now logged to the console for easier debugging and monitoring.
+*   **Improved Dev Experience**: The development start script (`start.sh`) has been modified to stream backend server logs directly to the console.
+*   **Configuration Update**: The `pyproject.toml` file has been updated to correctly identify the `app` package, ensuring proper package discovery.
+*   **Dependency Management**: The `markdown` dependency is now explicitly managed.
+*   **Bug Fix**: Corrected the file path resolution for served pages to use the path stored in the database, improving reliability.
+
+---
+
 ### `feat(upload): Markdown Support`
 
 **Date:** `2025-08-26`
