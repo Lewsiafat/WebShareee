@@ -24,7 +24,7 @@ FRONTEND_PID_OUTPUT=$( # Capture stdout of this subshell
 # Launch backend in a subshell, print its PID to stdout
 BACKEND_PID_OUTPUT=$( # Capture stdout of this subshell
     cd "$BACKEND_DIR" || { echo "Error: Backend directory not found."; exit 1; }
-    "$BACKEND_DIR/.venv/bin/uvicorn" app.main:app --reload --port 8700 > /dev/null 2>&1 &
+    "$BACKEND_DIR/.venv/bin/uvicorn" app.main:app --reload --port 8700 &
     echo $! # Print PID to stdout of this subshell
 )
 
