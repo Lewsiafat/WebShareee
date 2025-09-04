@@ -5,19 +5,21 @@ body {
   font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #303133;
-  background-color: #f0f2f5; /* Lighter background */
+  /* Use Element Plus variables for theme-aware colors */
+  color: var(--el-text-color-primary);
+  background-color: var(--el-bg-color-page);
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #303133;
+  color: var(--el-text-color-primary);
   margin-top: 0;
   margin-bottom: 20px;
 }
 
 p {
   line-height: 1.6;
-  color: #606266;
+  color: var(--el-text-color-regular);
 }
 
 /* Element Plus overrides for better spacing */
@@ -39,7 +41,9 @@ p {
   max-width: 960px;
   margin: 30px auto;
   padding: 30px;
-  background-color: #ffffff;
+  /* Use Element Plus variables for theme-aware colors */
+  background-color: var(--el-bg-color);
   border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: var(--el-box-shadow-light);
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }

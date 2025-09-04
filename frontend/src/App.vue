@@ -8,6 +8,13 @@ import AppLayout from './components/AppLayout.vue';
   </AppLayout>
 </template>
 
-<style scoped>
-/* No specific styles needed here, layout handles it */
+<style>
+/* Global styles to make the theme work across the app */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
 </style>

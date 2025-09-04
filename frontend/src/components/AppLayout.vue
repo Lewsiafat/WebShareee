@@ -6,20 +6,29 @@
         class="el-menu-demo"
         mode="horizontal"
         :router="true"
-        background-color="#545c64"
-        text-color="#fff"
-        active-text-color="#ffd04b"
       >
         <el-menu-item index="/">Home</el-menu-item>
         <el-menu-item index="/upload">Upload</el-menu-item>
         <el-menu-item index="/history">History</el-menu-item>
-        <el-menu-item index="/login" style="margin-left: auto;">Login</el-menu-item>
-        <!-- Add logout button if authenticated -->
-        <el-sub-menu v-if="authStore.isAuthenticated" index="user-menu" style="margin-left: auto;">
-          <template #title>{{ authStore.username || 'Admin' }}</template>
-          <el-menu-item index="/account">Account Settings</el-menu-item>
-          <el-menu-item @click="handleLogout">Logout</el-menu-item>
-        </el-sub-menu>
+        
+        <div class="menu-right">
+          <el-menu-item v-if="!authStore.isAuthenticated" index="/login">Login</el-menu-item>
+          <el-sub-menu v-if="authStore.isAuthenticated" index="user-menu">
+            <template #title>{{ authStore.username || 'Admin' }}</template>
+            <el-menu-item index="/account">Account Settings</el-menu-item>
+            <div class="el-menu-item theme-switcher">
+              <span>Dark Mode</span>
+              <el-switch
+                :model-value="themeStore.theme === 'dark'"
+                @change="themeStore.toggleTheme"
+                inline-prompt
+                :active-icon="Moon"
+                :inactive-icon="Sunny"
+              />
+            </div>
+            <el-menu-item @click="handleLogout">Logout</el-menu-item>
+          </el-sub-menu>
+        </div>
       </el-menu>
     </el-header>
     <el-main class="app-main">
@@ -35,11 +44,14 @@
 import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import { useThemeStore } from '../stores/theme';
 import { ElMessage } from 'element-plus';
+import { Sunny, Moon } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const themeStore = useThemeStore();
 const activeMenu = ref(route.path);
 
 watch(
@@ -64,21 +76,31 @@ const handleLogout = () => {
 }
 .app-header {
   padding: 0;
-  border-bottom: 1px solid #eee;
 }
 .el-menu-demo {
   border-bottom: none;
+  display: flex;
+}
+.menu-right {
+  margin-left: auto;
 }
 .app-main {
   flex: 1;
-  padding: 20px;
-  background-color: #f9fafc;
 }
 .app-footer {
   text-align: center;
   padding: 20px;
-  color: #666;
-  border-top: 1px solid #eee;
-  background-color: #f0f2f5;
+  color: var(--el-text-color-secondary);
+}
+
+.theme-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 20px;
+}
+
+.theme-switcher span {
+  margin-right: 10px;
 }
 </style>

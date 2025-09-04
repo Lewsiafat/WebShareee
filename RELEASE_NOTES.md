@@ -1,3 +1,18 @@
+### `feat(ui): Complete Dark Mode Implementation`
+
+**Date:** `2025-09-04`
+
+**Summary:**
+This update fully implements a comprehensive dark mode across the entire application. The user interface now respects the user's theme preference, providing a comfortable viewing experience in low-light environments.
+
+**Key Changes:**
+*   **Global Theme Application**: The dark mode theme is now applied globally, affecting the background of all pages.
+*   **Component-Level Styling**: All UI components, including content containers, cards, and tables, now correctly adapt to the dark theme using theme-aware CSS variables.
+*   **CSS Refactoring**: Refactored global stylesheets (`main.css`) to remove hardcoded colors and replace them with Element Plus CSS variables for dynamic theme switching.
+*   **Root Component Update**: Updated the root `App.vue` component to ensure theme styles are applied consistently on initial load and during theme changes.
+
+---
+
 ### `feat(markdown): Apply GitHub Theme to HTML`
 
 **Date:** `2025-09-04`
