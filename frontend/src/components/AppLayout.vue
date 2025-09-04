@@ -17,7 +17,7 @@
         <!-- Add logout button if authenticated -->
         <el-sub-menu v-if="authStore.isAuthenticated" index="user-menu" style="margin-left: auto;">
           <template #title>{{ authStore.username || 'Admin' }}</template>
-          <el-menu-item index="/account">帳號設定</el-menu-item>
+          <el-menu-item index="/account">Account Settings</el-menu-item>
           <el-menu-item @click="handleLogout">Logout</el-menu-item>
         </el-sub-menu>
       </el-menu>

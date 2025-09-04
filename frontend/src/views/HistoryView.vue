@@ -7,7 +7,7 @@
     </div>
 
     <el-table :data="pages" v-loading="loading" style="width: 100%" border class="mt-4">
-      <el-table-column prop="title" label="Title" width="180"></el-table-column>
+      <el-table-column prop="title" label="Title"></el-table-column>
       <el-table-column prop="id" label="Page ID" width="120"></el-table-column>
       <el-table-column label="URL" width="250">
         <template #default="scope">
@@ -20,11 +20,13 @@
           {{ formatDate(scope.row.created_at) }}
         </template>
       </el-table-column>
-      <el-table-column label="Actions">
+      <el-table-column label="Actions" width="180">
         <template #default="scope">
-          <el-button size="small" @click="viewPage(scope.row.url)">View</el-button>
-          <el-button size="small" @click="handleEdit(scope.row)">Edit</el-button> <!-- New Edit Button -->
-          <el-button size="small" type="danger" @click="confirmDelete(scope.row.id)">Delete</el-button>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <el-button size="small" @click="viewPage(scope.row.url)">View</el-button>
+            <el-button size="small" @click="handleEdit(scope.row)">Edit</el-button>
+            <el-button size="small" type="danger" @click="confirmDelete(scope.row.id)">Delete</el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>

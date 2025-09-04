@@ -180,6 +180,9 @@ const submitHtmlCode = async () => {
   try {
     const response = await axios.post('/api/upload/code', htmlCodeForm.value, { headers: authStore.getAuthHeader() });
     handleSuccess(response);
+    // Clear form fields
+    htmlCodeForm.value.title = '';
+    htmlCodeForm.value.html_content = '';
   } catch (error) {
     handleError(error, 'Failed to submit HTML code.');
   } finally {
@@ -213,6 +216,9 @@ const submitMdCode = async () => {
   try {
     const response = await axios.post('/api/upload/markdown', mdCodeForm.value, { headers: authStore.getAuthHeader() });
     handleSuccess(response);
+    // Clear form fields
+    mdCodeForm.value.title = '';
+    mdCodeForm.value.markdown_content = '';
   } catch (error) {
     handleError(error, 'Failed to submit Markdown code.');
   } finally {
