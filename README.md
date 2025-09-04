@@ -1,24 +1,24 @@
-# 靜態網頁託管服務 (Static Web Hosting Service)
+# Static Web Hosting Service
 
-一個簡單易用的網站服務，讓使用者能夠上傳靜態網頁並產生短網址進行分享。本服務提供了一個現代化的介面，支援檔案上傳、程式碼貼上，以及完整的管理功能。
+A simple and easy-to-use web service that allows users to upload static web pages and generate short URLs for sharing. This service provides a modern interface, supporting file uploads, code pasting, and comprehensive management functions.
 
-## ✨ 功能特色 (Features)
+## ✨ Features
 
-- **網頁上傳**: 支援 HTML 檔案上傳與直接貼上原始碼。
-- **Markdown 支援**: 支援上傳 Markdown 檔案 (.md) 或貼上原始碼，並自動轉換為 HTML 頁面。
-- **資源檔案**: 支援圖片、PDF 等靜態資源與頁面關聯。
-- **URL 生成**: 自動為每個頁面生成獨特的短網址。
-- **歷史管理**: 提供儀表板來管理、檢視及刪除已上傳的頁面。
-- **安全登入**: 透過管理員帳號保護上傳與管理功能。
-- **帳號管理**: 提供獨立的帳號設定頁面，允許登入後的使用者隨時更新自己的使用者名稱和密碼，確保帳號安全。
+- **Web Page Upload**: Supports HTML file uploads and direct pasting of source code.
+- **Markdown Support**: Supports uploading Markdown files (.md) or pasting source code, which will be automatically converted and rendered as HTML pages.
+- **Resource Files**: Supports associating static resources like images and PDFs with pages.
+- **URL Generation**: Automatically generates unique short URLs for each page.
+- **History Management**: Provides a dashboard to manage, view, and delete uploaded pages.
+- **Secure Login**: Protects upload and management functions via an administrator account.
+- **Account Management**: Provides a dedicated account settings page, allowing logged-in users to update their username and password at any time, ensuring account security.
 
-## 🏗️ 系統架構 (System Architecture)
+## 🏗️ System Architecture
 
-本專案採用前後端分離的架構。前端是一個單頁應用程式 (SPA)，直接與後端 API 進行通訊。
+This project adopts a front-end and back-end separation architecture. The front-end is a Single Page Application (SPA) that communicates directly with the back-end API.
 
 ```
 +-----------------+      +-------------------+
-|   使用者 Browser | <--> |   FastAPI Backend |
+|   User Browser  | <--> |   FastAPI Backend |
 +-----------------+      | (Uvicorn)         |
         |              +-------------------+
         |                      |
@@ -29,94 +29,94 @@
 +-----------------+      +-------------------+
 ```
 
-- **前端 (Frontend)**: 使用 Vue.js 3 搭配 Vite 建置，提供一個響應式的單頁應用程式 (SPA)。
-- **後端 (Backend)**: 使用 Python 的 FastAPI 框架，負責處理 API 請求、使用者認證、檔案上傳和資料庫互動。
-- **資料庫 (Database)**: 使用 SQLite 作為輕量級的資料庫，儲存頁面資訊和使用者資料。
+- **Frontend**: Built with Vue.js 3 and Vite, providing a responsive Single Page Application (SPA).
+- **Backend**: Uses Python's FastAPI framework, responsible for handling API requests, user authentication, file uploads, and database interactions.
+- **Database**: Uses SQLite as a lightweight database to store page information and user data.
 
-## 🛠️ 技術背景 (Technical Stack)
+## 🛠️ Technical Stack
 
-### 前端 (Frontend)
-- **框架**: Vue 3 (Composition API)
-- **建構工具**: Vite
-- **UI 框架**: Element Plus
-- **狀態管理**: Pinia
-- **路由**: Vue Router
-- **HTTP 客戶端**: Axios
-- **樣式**: SCSS
+### Frontend
+- **Framework**: Vue 3 (Composition API)
+- **Build Tool**: Vite
+- **UI Framework**: Element Plus
+- **State Management**: Pinia
+- **Routing**: Vue Router
+- **HTTP Client**: Axios
+- **Styling**: SCSS
 
-### 後端 (Backend)
-- **語言**: Python 3.11+
-- **框架**: FastAPI
-- **伺服器**: Uvicorn
-- **資料庫**: SQLite
-- **套件管理**: uv
-- **檔案處理**: aiofiles, python-multipart
+### Backend
+- **Language**: Python 3.11+
+- **Framework**: FastAPI
+- **Server**: Uvicorn
+- **Database**: SQLite
+- **Package Manager**: uv
+- **File Handling**: aiofiles, python-multipart
 
-## 🚀 安裝與啟動 (Installation and Setup)
+## 🚀 Installation and Setup
 
-請依照以下步驟設定開發環境：
+Please follow the steps below to set up your development environment:
 
-### 1. 環境準備
+### 1. Environment Preparation
 
-請先確認您的系統已安裝以下軟體：
-- [Node.js](https://nodejs.org/) (v18.0 或以上)
-- [Python](https://www.python.org/) (v3.11 或以上)
-- [uv](https://github.com/astral-sh/uv) (Python 套件管理器)
+Please ensure your system has the following software installed:
+- [Node.js](https://nodejs.org/) (v18.0 or higher)
+- [Python](https://www.python.org/) (v3.11 or higher)
+- [uv](https://github.com/astral-sh/uv) (Python package manager)
 
-### 2. 後端設定 (Backend)
+### 2. Backend Setup
 
 ```bash
-# 1. 進入後端目錄
+# 1. Navigate to the backend directory
 cd web-hosting-service/backend
 
-# 2. 使用 uv 建立虛擬環境
+# 2. Create a virtual environment using uv
 uv venv
 
-# 3. 啟用虛擬環境
+# 3. Activate the virtual environment
 # macOS / Linux
 source .venv/bin/activate
 # Windows
 .venv\Scripts\activate
 
-# 4. 安裝 Python 依賴套件
+# 4. Install Python dependencies
 uv sync
 ```
 
-### 3. 前端設定 (Frontend)
+### 3. Frontend Setup
 
 ```bash
-# 1. 進入前端目錄
+# 1. Navigate to the frontend directory
 cd web-hosting-service/frontend
 
-# 2. 安裝 Node.js 依賴套件
+# 2. Install Node.js dependencies
 npm install
 ```
 
-### 4. 啟動開發伺服器
+### 4. Start Development Server
 
-本專案提供一個方便的啟動腳本，可以同時啟動前後端開發伺服器。
+This project provides a convenient startup script that can simultaneously launch both front-end and back-end development servers.
 
 ```bash
-# 於專案根目錄 web-hosting-service/ 執行
+# Execute from the project root directory web-hosting-service/
 ./scripts/start.sh
 ```
 
-- **前端** 將會運行在 `http://localhost:8080`
-- **後端** 將會運行在 `http://localhost:8700`
+- **Frontend** will run on `http://localhost:8080`
+- **Backend** will run on `http://localhost:8700`
 
-## ⚙️ 設定與組態 (Configuration)
+## ⚙️ Configuration
 
-本專案使用環境變數進行後端設定。
+This project uses environment variables for backend configuration.
 
-### 管理員帳號
+### Administrator Account
 
-在系統首次啟動時，會建立一組預設的管理員帳號。您可以透過以下環境變數進行設定：
+Upon the first startup of the system, a default administrator account will be created. You can configure it via the following environment variables:
 
-- `DEFAULT_ADMIN_USERNAME`: 設定預設管理員的使用者名稱 (預設值: `admin`)
-- `DEFAULT_ADMIN_PASSWORD`: 設定預設管理員的密碼 (預設值: `adminpassword`)
+- `DEFAULT_ADMIN_USERNAME`: Sets the default administrator username (default: `admin`)
+- `DEFAULT_ADMIN_PASSWORD`: Sets the default administrator password (default: `adminpassword`)
 
-**重要**: 在生產環境中，請務必設定一個高強度的密碼。
+**Important**: In a production environment, please ensure to set a strong password.
 
-## 📝 版本歷史 (Changelog)
+## 📝 Changelog
 
-詳細的更新紀錄請參考 [RELEASE_NOTES.md](RELEASE_NOTES.md)。
+For detailed update records, please refer to [RELEASE_NOTES.md](RELEASE_NOTES.md).
