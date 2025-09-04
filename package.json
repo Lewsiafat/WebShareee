@@ -1,0 +1,9 @@
+{
+  "name": "web-hosting-service-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static Web Hosting Service",
+  "scripts": {
+    "postinstall": "cd frontend && npm install"
+  }
+}

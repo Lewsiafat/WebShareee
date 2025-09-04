@@ -4,6 +4,7 @@ import secrets
 import string
 import markdown
 import logging
+import json
 from typing import Optional, List
 from pathlib import Path
 
@@ -24,11 +25,22 @@ from .database import engine, SessionLocal, create_db_and_tables, Page, Asset, U
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# --- Version Loading ---
+try:
+    # Path to the root package.json, two levels up from this file's directory (app/ -> backend/ -> root)
+    PACKAGE_JSON_PATH = Path(__file__).parent.parent.parent / 'package.json'
+    with open(PACKAGE_JSON_PATH) as f:
+        _package_json = json.load(f)
+        __version__ = _package_json.get("version", "0.0.0-dev")
+except (FileNotFoundError, json.JSONDecodeError):
+    __version__ = "0.0.0-error"
+
+
 # --- FastAPI App Initialization ---
 app = FastAPI(
     title="Static Web Hosting Service Backend",
     description="API for uploading and serving static web pages.",
-    version="0.1.0"
+    version=__version__
 )
 
 # --- CORS Middleware ---
@@ -47,6 +59,7 @@ app.add_middleware(
 # --- Database Setup ---
 @app.on_event("startup")
 def on_startup():
+    logger.info(f"Server version: {__version__}")
     logger.info("Application startup: Creating database and tables...")
     create_db_and_tables()
     db = SessionLocal()

@@ -35,7 +35,7 @@
       <slot></slot>
     </el-main>
     <el-footer class="app-footer">
-      Static Web Hosting Service &copy; 2025
+      Static Web Hosting Service &copy; 2025 | Version: {{ appVersion }}
     </el-footer>
   </el-container>
 </template>
@@ -47,6 +47,8 @@ import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { ElMessage } from 'element-plus';
 import { Sunny, Moon } from '@element-plus/icons-vue';
+
+const appVersion = __APP_VERSION__; // Injected by Vite
 
 const route = useRoute();
 const router = useRouter();
