@@ -1,3 +1,17 @@
+### `feat(markdown): Apply GitHub Theme to HTML`
+
+**Date:** `2025-09-04`
+
+**Summary:**
+This update enhances the presentation of Markdown-generated pages by applying a professional, clean theme that mimics the GitHub style. This significantly improves the readability and visual appeal of the content.
+
+**Key Changes:**
+*   **CSS Theming**: All Markdown content, whether from file uploads or direct code input, is now wrapped in a full HTML document.
+*   **GitHub Style**: A CSS stylesheet (`github-markdown-css`) is linked from a CDN to style the rendered HTML, providing a familiar and pleasant reading experience.
+*   **Responsive Design**: Basic responsive styles have been added to ensure the content is well-formatted on both desktop and mobile devices.
+
+---
+
 ### `feat(backend): Comprehensive Logging and Stability`
 
 **Date:** `2025-08-27`
