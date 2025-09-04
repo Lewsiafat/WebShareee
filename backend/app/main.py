@@ -118,6 +118,38 @@ def get_unique_page_id(db: Session):
         if not db.query(Page).filter(Page.id == page_id).first():
             return page_id
 
+def wrap_html_content_with_theme(content: str, title: str) -> str:
+    """Wraps the provided HTML content with a themed HTML structure."""
+    return f'''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.css">
+    <style>
+        .markdown-body {{
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+        }}
+        @media (max-width: 767px) {{
+            .markdown-body {{
+                padding: 15px;
+            }}
+        }}
+    </style>
+</head>
+<body class="markdown-body">
+    {content}
+</body>
+</html>
+'''
+
+
 # --- API Endpoints ---
 
 # Authentication
@@ -144,6 +176,7 @@ async def upload_html_file(
     page_dir = PAGES_DIR / page_id
     page_dir.mkdir(parents=True, exist_ok=True)
     html_file_path = page_dir / "index.html"
+    page_title = title if title else filename
 
     try:
         content_bytes = await file.read()
@@ -152,8 +185,9 @@ async def upload_html_file(
             logger.info(f"Converting Markdown file '{filename}' to HTML.")
             md_content = content_bytes.decode("utf-8")
             html_content = markdown.markdown(md_content)
+            full_html = wrap_html_content_with_theme(html_content, page_title)
             with open(html_file_path, "w", encoding="utf-8") as f:
-                f.write(html_content)
+                f.write(full_html)
         else: # HTML file
             logger.info(f"Saving HTML file '{filename}'.")
             with open(html_file_path, "wb") as f:
@@ -165,7 +199,7 @@ async def upload_html_file(
     finally:
         await file.close()
 
-    db_page = Page(id=page_id, title=title if title else filename, file_path=str(html_file_path), html_content=None)
+    db_page = Page(id=page_id, title=page_title, file_path=str(html_file_path), html_content=None)
     db.add(db_page)
     db.commit()
     db.refresh(db_page)
@@ -211,17 +245,19 @@ async def upload_markdown_code(
     page_dir = PAGES_DIR / page_id
     page_dir.mkdir(parents=True, exist_ok=True)
     html_file_path = page_dir / "index.html"
+    page_title = payload.title if payload.title else "Untitled Page"
 
     html_content = markdown.markdown(payload.markdown_content)
+    full_html = wrap_html_content_with_theme(html_content, page_title)
 
     try:
         with open(html_file_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
+            f.write(full_html)
     except Exception as e:
         logger.error(f"Failed to write converted HTML content for new page: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to write HTML content: {e}")
 
-    db_page = Page(id=page_id, title=payload.title if payload.title else "Untitled Page", file_path=str(html_file_path), html_content=payload.markdown_content)
+    db_page = Page(id=page_id, title=page_title, file_path=str(html_file_path), html_content=payload.markdown_content)
     db.add(db_page)
     db.commit()
     db.refresh(db_page)
