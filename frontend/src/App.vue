@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from './components/AppLayout.vue';
+import AppLayout from "./components/AppLayout.vue";
 </script>
 
 <template>
@@ -15,6 +15,8 @@ body {
   padding: 0;
   background-color: var(--el-bg-color);
   color: var(--el-text-color-primary);
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition:
+    background-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
 }
 </style>
