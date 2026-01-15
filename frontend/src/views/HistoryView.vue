@@ -1,58 +1,62 @@
 <template>
   <div class="page-container">
-    <h1>Upload History</h1>
-
-    <div class="header-actions">
-      <el-button type="primary" @click="fetchPages" :icon="Refresh"
-        >Refresh List</el-button
-      >
+    <div class="view-header">
+       <h1>Upload History</h1>
+       <el-button type="primary" @click="fetchPages" :icon="Refresh" circle></el-button>
     </div>
 
-    <el-table
-      :data="pages"
-      v-loading="loading"
-      style="width: 100%"
-      border
-      class="mt-4"
-    >
-      <el-table-column prop="title" label="Title"></el-table-column>
-      <el-table-column prop="id" label="Page ID" width="120"></el-table-column>
-      <el-table-column label="URL" width="250">
-        <template #default="scope">
-          <el-link :href="scope.row.url" target="_blank" type="primary">{{
-            scope.row.url
-          }}</el-link>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="view_count"
-        label="Views"
-        width="80"
-      ></el-table-column>
-      <el-table-column label="Created At" width="180">
-        <template #default="scope">
-          {{ formatDate(scope.row.created_at) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="Actions" width="180">
-        <template #default="scope">
-          <div style="display: flex; align-items: center; gap: 5px">
-            <el-button size="small" @click="viewPage(scope.row.url)"
-              >View</el-button
-            >
-            <el-button size="small" @click="handleEdit(scope.row)"
-              >Edit</el-button
-            >
-            <el-button
-              size="small"
-              type="danger"
-              @click="confirmDelete(scope.row.id)"
-              >Delete</el-button
-            >
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="glass-panel table-container">
+      <el-table
+        :data="pages"
+        v-loading="loading"
+        style="width: 100%"
+        class="custom-table"
+        :header-cell-style="{ background: 'transparent', color: 'var(--text-secondary)' }"
+        :row-class-name="tableRowClassName"
+      >
+        <el-table-column prop="title" label="Title" min-width="180">
+          <template #default="scope">
+             <span class="title-text">{{ scope.row.title || 'Untitled Page' }}</span>
+          </template>
+        </el-table-column>
+        
+        <el-table-column label="Page URL" min-width="250">
+          <template #default="scope">
+            <el-link :href="scope.row.url" target="_blank" type="primary" class="url-link">
+              {{ scope.row.url }}
+            </el-link>
+          </template>
+        </el-table-column>
+        
+        <el-table-column prop="view_count" label="Views" width="100" align="center">
+           <template #default="scope">
+             <el-tag effect="light" round size="small">{{ scope.row.view_count }}</el-tag>
+           </template>
+        </el-table-column>
+        
+        <el-table-column label="Created" width="180">
+          <template #default="scope">
+            <span class="date-text">{{ formatDate(scope.row.created_at) }}</span>
+          </template>
+        </el-table-column>
+        
+        <el-table-column label="Actions" width="220" fixed="right">
+          <template #default="scope">
+            <div class="actions-group">
+              <el-tooltip content="Preview" placement="top">
+                <el-button size="small" circle :icon="View" @click="viewPage(scope.row.url)" />
+              </el-tooltip>
+              <el-tooltip content="Edit" placement="top">
+                <el-button size="small" circle :icon="Edit" type="warning" plain @click="handleEdit(scope.row)" />
+              </el-tooltip>
+              <el-tooltip content="Delete" placement="top">
+                 <el-button size="small" circle :icon="Delete" type="danger" plain @click="confirmDelete(scope.row.id)" />
+              </el-tooltip>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
 
     <el-alert
       v-if="errorMessage"
@@ -60,7 +64,7 @@
       type="error"
       show-icon
       class="mt-4"
-    ></el-alert>
+    />
 
     <!-- Delete Confirmation Dialog -->
     <el-dialog
@@ -68,35 +72,31 @@
       title="Confirm Deletion"
       width="30%"
       center
+      class="custom-dialog"
     >
-      <span
-        >Are you sure you want to delete this page? This action cannot be
-        undone.</span
-      >
+      <span class="dialog-msg">Are you sure you want to delete this page? This action cannot be undone.</span>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="deleteDialogVisible = false">Cancel</el-button>
-          <el-button type="danger" @click="deletePage">Confirm</el-button>
+          <el-button type="danger" @click="deletePage">Confirm Delete</el-button>
         </span>
       </template>
     </el-dialog>
 
     <!-- Edit Dialog -->
-    <el-dialog v-model="editDialogVisible" title="Edit Page" width="40%" center>
-      <el-form :model="currentPageToEdit" label-width="100px">
+    <el-dialog v-model="editDialogVisible" title="Edit Page Details" width="400px" center class="custom-dialog">
+      <el-form :model="currentPageToEdit" label-position="top">
         <el-form-item label="Page ID">
-          <el-input v-model="currentPageToEdit.id" disabled></el-input>
+          <el-input v-model="currentPageToEdit.id" disabled />
         </el-form-item>
         <el-form-item label="Title">
-          <el-input v-model="currentPageToEdit.title"></el-input>
+          <el-input v-model="currentPageToEdit.title" placeholder="Enter new title" />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="editDialogVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="saveEdit" :loading="loading"
-            >Save</el-button
-          >
+          <el-button type="primary" @click="saveEdit" :loading="loading">Save Changes</el-button>
         </span>
       </template>
     </el-dialog>
@@ -107,7 +107,7 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import { ElMessage } from "element-plus";
-import { Refresh } from "@element-plus/icons-vue";
+import { Refresh, View, Edit, Delete } from "@element-plus/icons-vue";
 import { useAuthStore } from "../stores/auth";
 
 const pages = ref([]);
@@ -115,12 +115,12 @@ const loading = ref(false);
 const errorMessage = ref("");
 
 // Delete related
-const deleteDialogVisible = ref(false); // Renamed from dialogVisible
+const deleteDialogVisible = ref(false);
 const pageToDeleteId = ref(null);
 
 // Edit related
 const editDialogVisible = ref(false);
-const currentPageToEdit = ref({ id: "", title: "" }); // Initialize with empty object
+const currentPageToEdit = ref({ id: "", title: "" });
 
 const authStore = useAuthStore();
 
@@ -130,11 +130,10 @@ const fetchPages = async () => {
   try {
     const response = await axios.get("/api/pages", {
       headers: authStore.getAuthHeader(),
-    }); // Use auth header
+    });
     pages.value = response.data;
   } catch (error) {
-    errorMessage.value =
-      error.response?.data?.detail || "Failed to fetch pages.";
+    errorMessage.value = error.response?.data?.detail || "Failed to fetch pages.";
     ElMessage.error("Failed to load history!");
   } finally {
     loading.value = false;
@@ -143,7 +142,7 @@ const fetchPages = async () => {
 
 const confirmDelete = (pageId) => {
   pageToDeleteId.value = pageId;
-  deleteDialogVisible.value = true; // Use new dialog variable
+  deleteDialogVisible.value = true;
 };
 
 const deletePage = async () => {
@@ -155,12 +154,11 @@ const deletePage = async () => {
   try {
     await axios.delete(`/api/pages/${pageToDeleteId.value}`, {
       headers: authStore.getAuthHeader(),
-    }); // Use auth header
+    });
     ElMessage.success("Page deleted successfully!");
     fetchPages();
   } catch (error) {
-    errorMessage.value =
-      error.response?.data?.detail || "Failed to delete page.";
+    errorMessage.value = error.response?.data?.detail || "Failed to delete page.";
     ElMessage.error("Deletion failed!");
   } finally {
     loading.value = false;
@@ -168,9 +166,8 @@ const deletePage = async () => {
   }
 };
 
-// New Edit methods
 const handleEdit = (page) => {
-  currentPageToEdit.value = { ...page }; // Create a copy to avoid direct mutation
+  currentPageToEdit.value = { ...page };
   editDialogVisible.value = true;
 };
 
@@ -180,17 +177,14 @@ const saveEdit = async () => {
   try {
     await axios.put(
       `/api/pages/${currentPageToEdit.value.id}`,
-      {
-        title: currentPageToEdit.value.title,
-      },
+      { title: currentPageToEdit.value.title },
       { headers: authStore.getAuthHeader() },
-    ); // Use auth header
+    );
     ElMessage.success("Page updated successfully!");
     editDialogVisible.value = false;
-    fetchPages(); // Refresh the list
+    fetchPages();
   } catch (error) {
-    errorMessage.value =
-      error.response?.data?.detail || "Failed to update page.";
+    errorMessage.value = error.response?.data?.detail || "Failed to update page.";
     ElMessage.error("Update failed!");
   } finally {
     loading.value = false;
@@ -202,8 +196,9 @@ const viewPage = (url) => {
 };
 
 const formatDate = (timestamp) => {
-  const date = new Date(timestamp);
-  return date.toLocaleString();
+  return new Date(timestamp).toLocaleString('en-US', { 
+    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+  });
 };
 
 onMounted(() => {
@@ -212,15 +207,58 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* No scoped styles needed here, using global .page-container */
-.header-actions {
-  text-align: right;
-  margin-bottom: 20px;
+.page-container {
+  max-width: 1000px;
+  margin: 0 auto;
 }
+
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.table-container {
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 8px;
+  background: var(--bg-card);
+}
+
+.custom-table {
+  --el-table-border-color: transparent;
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  --el-fill-color-light: rgba(0,0,0,0.02);
+}
+
+.title-text {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.url-link {
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.date-text {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.actions-group {
+  display: flex;
+  gap: 8px;
+}
+
 .mt-4 {
   margin-top: 20px;
 }
-.dialog-footer button:first-child {
-  margin-right: 10px;
+
+.dialog-msg {
+  font-size: 16px;
+  color: var(--text-main);
 }
 </style>

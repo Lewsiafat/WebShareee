@@ -1,49 +1,179 @@
-/* Basic global styles */
+/* Modern Color Palette & Variables */
+:root {
+  /* Brand Colors */
+  --brand-primary: #4f46e5;
+  --brand-primary-light: #818cf8;
+  --brand-secondary: #0ea5e9;
+  --brand-accent: #f43f5e;
+  
+  /* Neutral Colors (Light) */
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-sidebar: rgba(255, 255, 255, 0.7);
+  --text-main: #0f172a;
+  --text-secondary: #64748b;
+  --border-light: rgba(226, 232, 240, 0.8);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.3);
+  --glass-blur: blur(12px);
+
+  /* Element Plus Overrides (Light) */
+  --el-color-primary: var(--brand-primary);
+  --el-bg-color: var(--bg-card);
+  --el-bg-color-page: var(--bg-page);
+  --el-text-color-primary: var(--text-main);
+  --el-text-color-regular: var(--text-secondary);
+}
+
+/* Dark Theme Variables */
+html.dark {
+  /* Brand Colors (Adjusted for Dark) */
+  --brand-primary: #6366f1;
+  --brand-primary-light: #a5b4fc;
+  
+  /* Neutral Colors (Dark) */
+  --bg-page: #0f172a;
+  --bg-card: #1e293b;
+  --bg-sidebar: rgba(30, 41, 59, 0.7);
+  --text-main: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-light: rgba(51, 65, 85, 0.8);
+  
+  /* Shadows */
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+
+  /* Glassmorphism */
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.05);
+
+  /* Element Plus Overrides (Dark) */
+  --el-bg-color: var(--bg-card);
+  --el-bg-color-page: var(--bg-page);
+  --el-text-color-primary: var(--text-main);
+  --el-text-color-regular: var(--text-secondary);
+  --el-border-color: var(--border-light);
+}
+
+/* Global Reset & Typography */
 body {
   margin: 0;
   padding: 0;
-  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Use Element Plus variables for theme-aware colors */
-  color: var(--el-text-color-primary);
   background-color: var(--el-bg-color-page);
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  color: var(--el-text-color-primary);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.05) 0px, transparent 50%);
+  background-attachment: fixed;
+  transition: all 0.3s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
   color: var(--el-text-color-primary);
   margin-top: 0;
-  margin-bottom: 20px;
+  letter-spacing: -0.02em;
 }
 
-p {
-  line-height: 1.6;
-  color: var(--el-text-color-regular);
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--shadow-glass);
 }
 
-/* Element Plus overrides for better spacing */
-.el-form-item {
-  margin-bottom: 18px;
+.glass-card {
+  background: var(--el-bg-color);
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Animations */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Element Plus Customization */
 .el-button {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.el-button--primary {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-light));
+  border: none;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+}
+
+.el-button--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.3);
+  background: linear-gradient(135deg, var(--brand-primary-light), var(--brand-primary));
+}
+
+.el-input__wrapper {
+  border-radius: 8px;
+  box-shadow: none !important;
+  border: 1px solid var(--border-light);
+  background-color: var(--el-bg-color);
+  transition: all 0.2s ease;
+}
+
+.el-input__wrapper:hover,
+.el-input__wrapper.is-focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1) !important;
+}
+
+.el-card {
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  background-color: var(--el-bg-color);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--el-border-color);
   border-radius: 4px;
 }
 
-.el-alert {
-  margin-top: 15px;
-  margin-bottom: 15px;
-}
-
-/* General container styling */
-.page-container {
-  max-width: 960px;
-  margin: 30px auto;
-  padding: 30px;
-  /* Use Element Plus variables for theme-aware colors */
-  background-color: var(--el-bg-color);
-  border-radius: 8px;
-  box-shadow: var(--el-box-shadow-light);
-  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
 }
