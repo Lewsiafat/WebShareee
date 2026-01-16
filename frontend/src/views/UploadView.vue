@@ -324,13 +324,18 @@ const copyUrl = async () => {
 
 <style scoped>
 .upload-container {
-  max-width: 800px;
+  max-width: 100%;
+  padding: 0 20px;
   margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .upload-header {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .upload-header h1 {
@@ -347,12 +352,27 @@ const copyUrl = async () => {
   overflow: hidden;
   border-radius: 16px;
   background: var(--el-bg-color);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-tabs :deep(.el-tabs__content) {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .custom-tabs :deep(.el-tabs__header) {
   margin: 0;
   background: rgba(0,0,0,0.02);
   border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
 }
 
 .custom-tabs :deep(.el-tabs__item) {
@@ -369,17 +389,27 @@ const copyUrl = async () => {
 
 .tab-content {
   padding: 30px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .sub-tabs {
   margin-bottom: 30px;
   display: flex;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .upload-section {
-  max-width: 600px;
+  max-width: 800px;
+  width: 100%;
   margin: 0 auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .upload-area :deep(.el-upload-dragger) {

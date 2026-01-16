@@ -1,28 +1,34 @@
 /* Modern Color Palette & Variables */
 :root {
+  /* Ocean Depths Theme (Light Mode) */
   /* Brand Colors */
-  --brand-primary: #4f46e5;
-  --brand-primary-light: #818cf8;
-  --brand-secondary: #0ea5e9;
-  --brand-accent: #f43f5e;
-  
+  --brand-primary: #2d8b8b;
+  /* Teal */
+  --brand-primary-light: #4db6ac;
+  --brand-secondary: #a8dadc;
+  /* Seafoam */
+  --brand-accent: #e63946;
+
   /* Neutral Colors (Light) */
-  --bg-page: #f8fafc;
+  --bg-page: #f1faee;
+  /* Cream */
   --bg-card: #ffffff;
-  --bg-sidebar: rgba(255, 255, 255, 0.7);
-  --text-main: #0f172a;
-  --text-secondary: #64748b;
-  --border-light: rgba(226, 232, 240, 0.8);
-  
+  --bg-sidebar: rgba(241, 250, 238, 0.7);
+  --text-main: #1a2332;
+  /* Deep Navy */
+  --text-secondary: #457b9d;
+  --border-light: rgba(168, 218, 220, 0.5);
+  /* Seafoam transparent */
+
   /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-  
+  --shadow-sm: 0 1px 2px 0 rgba(26, 35, 50, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(26, 35, 50, 0.1), 0 2px 4px -2px rgba(26, 35, 50, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(26, 35, 50, 0.1), 0 4px 6px -4px rgba(26, 35, 50, 0.1);
+  --shadow-glass: 0 8px 32px 0 rgba(45, 139, 139, 0.15);
+
   /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.3);
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.4);
   --glass-blur: blur(12px);
 
   /* Element Plus Overrides (Light) */
@@ -33,26 +39,34 @@
   --el-text-color-regular: var(--text-secondary);
 }
 
-/* Dark Theme Variables */
+/* Sunset Boulevard Theme (Dark Mode) */
 html.dark {
   /* Brand Colors (Adjusted for Dark) */
-  --brand-primary: #6366f1;
-  --brand-primary-light: #a5b4fc;
-  
+  --brand-primary: #e76f51;
+  /* Burnt Orange */
+  --brand-primary-light: #f4a261;
+  /* Coral */
+
   /* Neutral Colors (Dark) */
-  --bg-page: #0f172a;
-  --bg-card: #1e293b;
-  --bg-sidebar: rgba(30, 41, 59, 0.7);
-  --text-main: #f8fafc;
-  --text-secondary: #94a3b8;
-  --border-light: rgba(51, 65, 85, 0.8);
-  
+  --bg-page: #264653;
+  /* Deep Purple */
+  --bg-card: #2a9d8f;
+  /* Muted Green/Teal for contrast card bg? Or dark? Let's stay with theme bg */
+  /* Actually Sunset Boulevard defines BG as Deep Purple. Let's make card slightly lighter */
+  --bg-card: #1d3540;
+  /* Darker shade of Deep Purple for contrast */
+  --bg-sidebar: rgba(38, 70, 83, 0.8);
+  --text-main: #e9c46a;
+  /* Warm Sand */
+  --text-secondary: #a8dadc;
+  --border-light: rgba(233, 196, 106, 0.2);
+
   /* Shadows */
-  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 
   /* Glassmorphism */
-  --glass-bg: rgba(30, 41, 59, 0.7);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.05);
+  --glass-bg: rgba(38, 70, 83, 0.7);
+  --glass-border: 1px solid rgba(233, 196, 106, 0.1);
 
   /* Element Plus Overrides (Dark) */
   --el-bg-color: var(--bg-card);
@@ -71,14 +85,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--el-bg-color-page);
   color: var(--el-text-color-primary);
-  background-image: 
+  background-image:
     radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0px, transparent 50%),
     radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.05) 0px, transparent 50%);
   background-attachment: fixed;
   transition: all 0.3s ease;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
   color: var(--el-text-color-primary);
