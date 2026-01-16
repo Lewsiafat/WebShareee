@@ -1,3 +1,14 @@
+### Release minor
+
+**Date:** `2026-01-16`
+
+**✨ New Features:**
+*   **ui:** Refine layout width and apply theme colors (Glassmorphism, Full Width, Fit Bottom).
+*   **ui:** Overhaul UI with glassmorphism design system (New Login, Home, History, Upload views).
+*   **ui:** Redesign UI with Sidebar Navigation.
+
+---
+
 ### `feat(ui): Complete Dark Mode Implementation`
 
 **Date:** `2025-09-04`
