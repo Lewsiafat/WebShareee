@@ -1,3 +1,12 @@
+### Release patch
+
+**Date:** `2026-01-21`
+
+**🐛 Bug Fixes:**
+*   **deploy:** add production vite config with correct base path
+
+---
+
 ### Release minor
 
 **Date:** `2026-01-16`
